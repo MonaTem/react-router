@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import MemoryRouter from "react-router/MemoryRouter";
 import NavLink from "../NavLink";
+import withRouter from "../withRouter";
 
 describe("NavLink", () => {
   const node = document.createElement("div");
@@ -52,7 +53,7 @@ describe("NavLink", () => {
       expect(a.style.color).toBe(activeStyle.color);
     });
 
-    it("applies aria-current of true if no override value is given", () => {
+    it("applies aria-current of page if no override value is given", () => {
       ReactDOM.render(
         <MemoryRouter initialEntries={["/pizza"]}>
           <NavLink to="/pizza" activeClassName="selected">
@@ -62,20 +63,31 @@ describe("NavLink", () => {
         node
       );
       const a = node.getElementsByTagName("a")[0];
-      expect(a.getAttribute("aria-current")).toEqual("true");
+      expect(a.getAttribute("aria-current")).toEqual("page");
     });
 
     it("applies the override aria-current value when given", () => {
       ReactDOM.render(
         <MemoryRouter initialEntries={["/pizza"]}>
-          <NavLink to="/pizza" activeClassName="selected" aria-current="page">
+          <NavLink to="/pizza" activeClassName="selected" aria-current="true">
             Pizza!
           </NavLink>
         </MemoryRouter>,
         node
       );
       const a = node.getElementsByTagName("a")[0];
-      expect(a.getAttribute("aria-current")).toEqual("page");
+      expect(a.getAttribute("aria-current")).toEqual("true");
+    });
+
+    it("handles locations without a pathname", () => {
+      expect(() => {
+        ReactDOM.render(
+          <MemoryRouter initialEntries={["/pizza"]}>
+            <NavLink to={{ search: "foo=bar" }}>Pizza!</NavLink>
+          </MemoryRouter>,
+          node
+        );
+      }).not.toThrow();
     });
 
     it("it properly escapes path-to-regexp special characters", () => {
@@ -90,6 +102,27 @@ describe("NavLink", () => {
       expect(href).toEqual("/pizza (1)");
       const a = node.getElementsByTagName("a")[0];
       expect(a.className).toEqual("active");
+    });
+
+    it("renders child components that use withRouter", () => {
+      class WrappedComponent extends React.Component {
+        render() {
+          return null;
+        }
+      }
+      const Component = withRouter(WrappedComponent);
+
+      let ref;
+      ReactDOM.render(
+        <MemoryRouter initialEntries={["/pizza"]}>
+          <NavLink to="/pizza">
+            <Component wrappedComponentRef={r => (ref = r)} />
+          </NavLink>
+        </MemoryRouter>,
+        node
+      );
+
+      expect(ref instanceof WrappedComponent).toBe(true);
     });
   });
 
@@ -159,6 +192,27 @@ describe("NavLink", () => {
       );
       const a = node.getElementsByTagName("a")[0];
       expect(a.getAttribute("aria-current")).toBeNull();
+    });
+
+    it("renders child components that use withRouter", () => {
+      class WrappedComponent extends React.Component {
+        render() {
+          return null;
+        }
+      }
+      const Component = withRouter(WrappedComponent);
+
+      let ref;
+      ReactDOM.render(
+        <MemoryRouter initialEntries={["/pizza"]}>
+          <NavLink exact to="/salad">
+            <Component wrappedComponentRef={r => (ref = r)} />
+          </NavLink>
+        </MemoryRouter>,
+        node
+      );
+
+      expect(ref instanceof WrappedComponent).toBe(true);
     });
   });
 

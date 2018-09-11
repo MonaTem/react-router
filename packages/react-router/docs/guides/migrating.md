@@ -4,12 +4,14 @@ React Router v4 is a complete rewrite, so there is not a simple migration path. 
 
 **Note:** This migration guide is for both React Router v2 and v3, but for brevity, references to previous versions will only mention v3.
 
-**Caution for react-router-redux users:** Not all packages are compatible with React Router v4 or are feature complete. In particular, time travel in Redux DevTools is [not yet available](https://github.com/ReactTraining/react-router/pull/4717) in the latest react-router-redux (currently in alpha).
+**For react-router-redux users:** This library [has been deprecated](/packages/react-router-redux/README.md#project-deprecated). It is recommended that you separate out Redux and React Router, as their state semantics don't match up exactly. But if you wish to attempt to keep them in sync, you can use a library such as [connected-react-router](https://github.com/supasate/connected-react-router).
 
 * [The Router](#the-router)
 * [Routes](#routes)
   * [Nesting Routes](#nesting-routes)
   * [on* properties](#on-properties)
+  * [Optional Parameters](#optional-parameters)
+  * [Query Strings](#query-strings)
   * [Switch](#switch)
   * [Redirect](#redirect)
 * [PatternUtils](#patternutils)
@@ -121,6 +123,20 @@ React Router v3 provides `onEnter`, `onUpdate`, and `onLeave` methods. These wer
 
 With v4, you should use the lifecycle methods of the component rendered by a `<Route>`. Instead of `onEnter`, you would use `componentDidMount` or `componentWillMount`. Where you would use `onUpdate`, you can use `componentDidUpdate` or `componentWillUpdate` (or possibly `componentWillReceiveProps`). `onLeave` can be replaced with `componentWillUnmount`.
 
+### Optional Parameters
+
+In v3, parameters were made optional with parentheses: `path="/entity/:entityId(/:parentId)"`
+
+In v4, the syntax is changed to a trailing question mark: `path="/entity/:entityId/:parentId?"`
+
+### Query Strings
+
+In v4, there is no parsing done on query strings. The unparsed query string is available on the `location.search` property.
+
+The [qhistory](https://github.com/pshrmn/qhistory) library can provide this functionality if it is necessary for your application.
+
+Read more regarding intentions for this change and possible solutions in [this issue](https://github.com/ReactTraining/react-router/issues/4410).
+
 ### `<Switch>`
 
 In v3, you could specify a number of child routes, and only the first one that matched would be rendered.
@@ -198,7 +214,7 @@ In v4, you must re-pass these properties to the `to` prop:
 ## PatternUtils
 
 ### matchPattern(pattern, pathname)
-In v3, you could use the same matching code used internally to check if a path matched a pattern. In v4 this has been replaced by [matchPath](/packages/react-router/docs/api/matchPath.md) which is powered by the [path-to-regexp](https://github.com/pillarjs/path-to-regexp) library.
+In v3, you could use the same matching code used internally to check if a path matched a pattern. In v4 this has been replaced by [matchPath](/packages/react-router/docs/api/matchPath.md) which is powered by the [`path-to-regexp@^1.7.0`](https://github.com/pillarjs/path-to-regexp/tree/v1.7.0) library.
 
 ### formatPattern(pattern, params)
 In v3, you could use PatternUtils.formatPattern to generate a valid path from a path pattern (perhaps in a constant or in your central routing config) and an object containing the names parameters:
@@ -210,7 +226,7 @@ const THING_PATH = '/thing/:id';
 <Link to={PatternUtils.formatPattern(THING_PATH, {id: 1})}>A thing</Link>
 ```
 
-In v4, you can achieve the same functionality using the [compile](https://github.com/pillarjs/path-to-regexp#compile-reverse-path-to-regexp) function in [path-to-regexp](https://github.com/pillarjs/path-to-regexp).
+In v4, you can achieve the same functionality using the [`compile`](https://github.com/pillarjs/path-to-regexp/tree/v1.7.0#compile-reverse-path-to-regexp) function in [`path-to-regexp@^1.7.0`](https://github.com/pillarjs/path-to-regexp/tree/v1.7.0).
 
 ```jsx
 // v4
@@ -220,6 +236,10 @@ const thingPath = pathToRegexp.compile(THING_PATH);
 
 <Link to={thingPath({id: 1})}>A thing</Link>
 ```
+
+### getParamNames
+
+The `getParamNames` functionality can be achieved using the [`parse`](https://github.com/pillarjs/path-to-regexp/tree/v1.7.0#parse) function in [`path-to-regexp@^1.7.0`](https://github.com/pillarjs/path-to-regexp/tree/v1.7.0).
 
 ## Link
 
